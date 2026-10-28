@@ -1,6 +1,6 @@
 # Exo Shield
 
-Exo Shield is [Exo Browser](https://github.com/ImAvgErix/ExoBrowser)'s built-in blocker: one browser extension that blocks ads, trackers, malware, cookie notices and pop-ups before they load, and keeps Twitch streams free of ad breaks. It is free software under the [GNU General Public License version 3](LICENSE).
+Exo Shield is [Exo Browser](https://github.com/UhhErix/ExoBrowser)'s built-in blocker: one browser extension that blocks ads, trackers, malware, cookie notices and pop-ups before they load, and keeps Twitch streams free of ad breaks. It is free software under the [GNU General Public License version 3](LICENSE).
 
 It is made from three GPL-3.0 projects, combined by one script:
 
@@ -34,6 +34,6 @@ Without a path it downloads HaGeZi's current Multi PRO list, so a new build has 
 
 ## Licenses
 
-Exo Shield, and each part it is made from, is under the GPL-3.0 ([LICENSE](LICENSE)). uBlock Origin Lite's filter lists keep their own licenses, listed in `extensions/exo-shield/rulesets`. Exo's icons in `brand/` are © Erix (ImAvgErix), shared under the same GPL-3.0 as part of this program.
+Exo Shield, and each part it is made from, is under the GPL-3.0 ([LICENSE](LICENSE)). uBlock Origin Lite's filter lists keep their own licenses, listed in `extensions/exo-shield/rulesets`. Exo's icons in `brand/` are © Erix (UhhErix), shared under the same GPL-3.0 as part of this program.
 
 Exo Shield is not affiliated with or endorsed by the uBlock Origin, HaGeZi or TTV LOL PRO projects, or by Twitch.
