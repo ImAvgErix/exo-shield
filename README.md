@@ -1,6 +1,6 @@
 # Exo Shield
 
-Exo Shield is [Exo Browser](https://github.com/UhhErix/ExoBrowser)'s built-in blocker: one browser extension that blocks ads, trackers, malware, cookie notices and pop-ups before they load, and keeps Twitch streams free of ad breaks. It is free software under the [GNU General Public License version 3](LICENSE).
+Exo Shield is [Exo Browser](https://github.com/UhhErix/ExoBrowser)'s built-in blocker, and the one in Exo Launcher's music players: one browser extension that blocks ads, trackers, malware, cookie notices and pop-ups before they load, and keeps Twitch streams free of ad breaks. It is free software under the [GNU General Public License version 3](LICENSE).
 
 It is made from three GPL-3.0 projects, combined by one script:
 
@@ -22,6 +22,10 @@ It is made from three GPL-3.0 projects, combined by one script:
 - Exo's name and icons (`brand/`).
 
 `extensions/exo-shield/NOTICE.txt` says the same in the extension itself.
+
+## Exo Shield core
+
+Each build also makes `out/exo-shield-core`: the same Exo Shield, at the same version, without TTV LOL PRO (its files, its two rules, its Twitch scripts and its proxy and webRequest permissions) or the count for Exo Browser's Bar. [Exo Launcher](https://github.com/UhhErix/ExoLauncher)'s music players use it, since they never load Twitch. `node tools/build-shield.mjs --core` makes only the core, from the `extensions/exo-shield` that's there. Its `NOTICE.txt` and `SOURCE.txt` say what it is made of.
 
 ## Build
 

@@ -3,14 +3,26 @@
 // cookie notices, overlays and tracking parameters blocked by default, TTV LOL PRO (GPL-3.0,
 // vendor/ttv-lol-pro) for Twitch's stream ads, and Exo's icon. Built in and locked: always at its
 // strongest, with no settings, popup or off switch.
+// Each build also makes out/exo-shield-core: the same Exo Shield without TTV LOL PRO, its proxy permissions or the
+// count for Exo Browser's Bar, for Exo Launcher's music players (which never load Twitch) to vendor.
 // node tools/build-shield.mjs [path-to-pro-onlydomains.txt]
+// node tools/build-shield.mjs --core   (only makes out/exo-shield-core, from extensions/exo-shield as it is)
 import { readFileSync, writeFileSync, rmSync, cpSync, copyFileSync, readdirSync } from "node:fs";
 
 const root = new URL("../", import.meta.url);
 const vendor = new URL("vendor/ublock-origin-lite/", root);
 const out = new URL("extensions/exo-shield/", root);
+const coreOut = new URL("out/exo-shield-core/", root);
+const ttvSource = new URL("vendor/ttv-lol-pro/", root);
 const SOURCE = "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/pro-onlydomains.txt";
+// TTV LOL PRO's messages carry no "what": uBlock's listener leaves them to it.
+const onMessageHook = "    if ( request.what.includes(':') ) { return; }";
+const onMessageTtv = "    if ( typeof request?.what !== 'string' || request.what.includes(':') ) { return; }";
 
+if (process.argv.includes("--core")) {
+  buildCore();
+  process.exit(0);
+}
 const text = process.argv[2] ? readFileSync(process.argv[2], "utf8") : await (await fetch(SOURCE)).text();
 const domains = [...new Set(text.split(/\r?\n/).map((l) => l.trim().toLowerCase()).filter((l) => l && !l.startsWith("#")))];
 if (domains.length < 50000) throw new Error(`only ${domains.length} domains: refusing to ship a short list`);
@@ -25,7 +37,6 @@ const rules = [];
 for (let i = 0; i < domains.length; i += 4000)
   rules.push({ id: rules.length + 1, priority: 1, action: { type: "block" }, condition: { requestDomains: domains.slice(i, i + 4000), resourceTypes: types } });
 // TTV LOL PRO's two rules (Twitch's ad scripts and beacons) ride along in this always-on ruleset.
-const ttvSource = new URL("vendor/ttv-lol-pro/", root);
 const ttvManifest = JSON.parse(readFileSync(new URL("manifest.json", ttvSource), "utf8"));
 for (const r of JSON.parse(readFileSync(new URL(ttvManifest.declarative_net_request.rule_resources[0].path, ttvSource), "utf8")))
   rules.push({ ...r, id: rules.length + 1 });
@@ -170,10 +181,8 @@ const bg = new URL("js/background.js", out);
 const bgSource = readFileSync(bg, "utf8");
 const startHook = "    if ( process.wakeupRun === false ) {\n        await startSession();\n    }\n";
 if (!bgSource.includes(startHook)) throw new Error("uBlock Origin Lite changed: start() not found");
-// TTV LOL PRO's messages carry no "what": uBlock's listener leaves them to it.
-const onMessageHook = "    if ( request.what.includes(':') ) { return; }";
 if (!bgSource.includes(onMessageHook)) throw new Error("uBlock Origin Lite changed: onMessage not found");
-writeFileSync(bg, bgSource.replace(onMessageHook, "    if ( typeof request?.what !== 'string' || request.what.includes(':') ) { return; }").replace(startHook, startHook + `
+writeFileSync(bg, bgSource.replace(onMessageHook, onMessageTtv).replace(startHook, startHook + `
     // Exo Shield: always Exo's rulesets and Complete filtering everywhere, put back on every start.
     await applyRulesets(await getDefaultRulesetsFromEnv());
     await setFilteringModeDetails({ none: [], basic: [], optimal: [], complete: [ 'all-urls' ] });
@@ -185,6 +194,77 @@ writeFileSync(bg, bgSource.replace(onMessageHook, "    if ( typeof request?.what
 writeFileSync(new URL("NOTICE.txt", out), NOTICE(ubolVersion, ttvManifest.version, domains.length));
 
 console.log(`Exo Shield ${manifest.version}: ${domains.length} HaGeZi domains in ${rules.length} rules`);
+buildCore();
+
+// out/exo-shield-core, from extensions/exo-shield: everything but TTV LOL PRO (its files, its two rules in
+// hagezi-pro.json, its content scripts and permissions) and the count for Exo Browser's Bar, at the same version.
+function buildCore() {
+  const at = (f) => new URL(f, coreOut);
+  const read = (f) => readFileSync(at(f), "utf8");
+  rmSync(coreOut, { recursive: true, force: true });
+  cpSync(out, coreOut, { recursive: true });
+  // _metadata: what a browser that loaded extensions/exo-shield unpacked left in it.
+  for (const f of ["ttv/", "exo-count.js", "exo-count-skip.json", "exo-background.js", "_metadata/"]) rmSync(at(f), { recursive: true, force: true });
+
+  const ttv = JSON.parse(readFileSync(new URL("manifest.json", ttvSource), "utf8"));
+  const ubol = JSON.parse(readFileSync(new URL("manifest.json", vendor), "utf8"));
+  const ttvRules = JSON.parse(readFileSync(new URL(ttv.declarative_net_request.rule_resources[0].path, ttvSource), "utf8"));
+  const same = (a, b) => JSON.stringify({ ...a, id: 0 }) === JSON.stringify({ ...b, id: 0 });
+  const rules = JSON.parse(read("hagezi-pro.json"));
+  const kept = rules.slice(0, rules.length - ttvRules.length);
+  if (!ttvRules.every((r, i) => same(r, rules[kept.length + i]))) throw new Error("Exo Shield's last rules aren't TTV LOL PRO's");
+  writeFileSync(at("hagezi-pro.json"), JSON.stringify(kept));
+
+  const manifest = JSON.parse(read("manifest.json"));
+  const own = (list, theirs, mine) => list.filter((p) => mine.includes(p) || !theirs.includes(p));
+  manifest.description = "Exo's blocker: uBlock Origin Lite's filters with HaGeZi's Multi PRO list.";
+  manifest.version_name = manifest.version_name.replace(/\)$/, ", core)");
+  manifest.background = ubol.background;
+  manifest.permissions = own(manifest.permissions, ttv.permissions, ubol.permissions).filter((p) => p !== "declarativeNetRequestFeedback");
+  manifest.host_permissions = own(manifest.host_permissions, ttv.host_permissions, ubol.host_permissions);
+  manifest.content_scripts = (manifest.content_scripts ?? []).filter((c) => !c.js.some((f) => f.startsWith("ttv/")));
+  if (!manifest.content_scripts.length) delete manifest.content_scripts;
+  manifest.web_accessible_resources = manifest.web_accessible_resources.filter((w) => !w.resources.some((f) => f.startsWith("ttv/")));
+  writeFileSync(at("manifest.json"), JSON.stringify(manifest, null, 2));
+
+  const bgSource = read("js/background.js");
+  if (!bgSource.includes(onMessageTtv)) throw new Error("Exo Shield's js/background.js changed: onMessage not found");
+  writeFileSync(at("js/background.js"), bgSource.replace(onMessageTtv, onMessageHook));
+  const details = JSON.parse(read("rulesets/ruleset-details.json"));
+  const hagezi = details.find((d) => d.id === "hagezi-pro");
+  hagezi.rules.total = hagezi.rules.plain = kept.length;
+  writeFileSync(at("rulesets/ruleset-details.json"), JSON.stringify(details));
+  const { ttv: _, ...made } = JSON.parse(read("exo-shield.json"));
+  writeFileSync(at("exo-shield.json"), JSON.stringify(made));
+
+  writeFileSync(at("NOTICE.txt"), NOTICE_CORE(made.ubol, made.hagezi));
+  writeFileSync(at("SOURCE.txt"), `Exo Shield ${manifest.version} core (${manifest.version_name}), made by tools/build-shield.mjs
+(node tools/build-shield.mjs, or --core from a built extensions/exo-shield) in https://github.com/UhhErix/exo-shield:
+Exo Browser's Exo Shield of the same version without TTV LOL PRO, its permissions or Exo Browser's blocked count.
+
+${read("SOURCE.txt")}`);
+  console.log(`Exo Shield ${manifest.version} core: ${kept.length} HaGeZi rules, permissions ${manifest.permissions.join(", ")}`);
+}
+
+function NOTICE_CORE(ubol, sites) {
+  return `Exo Shield (core), Exo's blocker
+Copyright (C) Raymond Hill and contributors (uBlock Origin Lite), HaGeZi (HaGeZi DNS blocklists), and Erix (UhhErix)
+for the changes below.
+
+Exo Shield is a modified version of uBlock Origin Lite ${ubol}, combined with HaGeZi's Multi PRO list (${sites}
+sites). It is free software under the GNU General Public License version 3 (LICENSE.txt), with no warranty.
+
+Changes, made by tools/build-shield.mjs (October 2026 and later):
+- Named Exo Shield, with Exo's icons.
+- HaGeZi's Multi PRO list added as an always-on ruleset (hagezi-pro.json).
+- uBlock Origin Lite's annoyance lists and tracking-parameter list on by default, and Complete filtering on every
+  site; both put back on every start (js/background.js, js/mode-manager.js).
+- No popup, options page or keyboard shortcuts.
+
+Source for this build, with the script that makes it: https://github.com/UhhErix/exo-shield
+uBlock Origin Lite: https://github.com/uBlockOrigin/uBOL-home  HaGeZi: https://github.com/hagezi/dns-blocklists
+`;
+}
 
 function NOTICE(ubol, ttv, sites) {
   return `Exo Shield, Exo Browser's built-in blocker
