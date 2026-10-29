@@ -4,10 +4,10 @@ Exo Shield is [Exo Browser](https://github.com/UhhErix/ExoBrowser)'s built-in bl
 
 It is made from three GPL-3.0 projects, combined by one script:
 
-| Part | Version in Exo Browser 1.3.0 and 1.3.1 | Project |
+| Part | Version in Exo Browser 1.4.0 | Project |
 | --- | --- | --- |
 | uBlock Origin Lite, by Raymond Hill and contributors | 2026.1026.1812 (Edge build) | <https://github.com/uBlockOrigin/uBOL-home> |
-| HaGeZi's Multi PRO DNS blocklist | 211,042 sites, October 28, 2026 | <https://github.com/hagezi/dns-blocklists> |
+| HaGeZi's Multi PRO DNS blocklist | 211,671 sites, October 29, 2026 | <https://github.com/hagezi/dns-blocklists> |
 | TTV LOL PRO, by Younes Aassila and contributors | 2.6.2 | <https://github.com/younesaassila/ttv-lol-pro> |
 
 ## What Exo Shield changes
