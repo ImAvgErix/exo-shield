@@ -4,7 +4,7 @@ Exo Shield is [Exo Browser](https://github.com/UhhErix/ExoBrowser)'s built-in bl
 
 It is made from three GPL-3.0 projects, combined by one script:
 
-| Part | Version in Exo Browser 1.3.0 | Project |
+| Part | Version in Exo Browser 1.3.0 and 1.3.1 | Project |
 | --- | --- | --- |
 | uBlock Origin Lite, by Raymond Hill and contributors | 2026.1026.1812 (Edge build) | <https://github.com/uBlockOrigin/uBOL-home> |
 | HaGeZi's Multi PRO DNS blocklist | 211,042 sites, October 28, 2026 | <https://github.com/hagezi/dns-blocklists> |
@@ -31,7 +31,7 @@ With Node 22 or newer:
 node tools/build-shield.mjs [path-to-pro-onlydomains.txt]
 ```
 
-Without a path it downloads HaGeZi's current Multi PRO list, so a new build has newer lists than the one committed here. `extensions/exo-shield` in this repository is exactly the build that ships in Exo Browser 1.3.0.
+Without a path it downloads HaGeZi's current Multi PRO list, so a new build has newer lists than the one committed here. `extensions/exo-shield` in this repository is exactly the build that ships in Exo Browser 1.3.0 and 1.3.1.
 
 ## Licenses
 
