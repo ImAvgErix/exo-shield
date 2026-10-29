@@ -4,10 +4,10 @@ Exo Shield is [Exo Browser](https://github.com/UhhErix/ExoBrowser)'s built-in bl
 
 It is made from three GPL-3.0 projects, combined by one script:
 
-| Part | Version in Exo Browser 1.0.0 | Project |
+| Part | Version in Exo Browser 1.3.0 | Project |
 | --- | --- | --- |
-| uBlock Origin Lite, by Raymond Hill and contributors | 2026.1021.1354 (Edge build) | <https://github.com/uBlockOrigin/uBOL-home> |
-| HaGeZi's Multi PRO DNS blocklist | 207,507 sites, October 22, 2026 | <https://github.com/hagezi/dns-blocklists> |
+| uBlock Origin Lite, by Raymond Hill and contributors | 2026.1026.1812 (Edge build) | <https://github.com/uBlockOrigin/uBOL-home> |
+| HaGeZi's Multi PRO DNS blocklist | 211,042 sites, October 28, 2026 | <https://github.com/hagezi/dns-blocklists> |
 | TTV LOL PRO, by Younes Aassila and contributors | 2.6.2 | <https://github.com/younesaassila/ttv-lol-pro> |
 
 ## What Exo Shield changes
@@ -18,6 +18,7 @@ It is made from three GPL-3.0 projects, combined by one script:
 - uBlock Origin Lite's annoyance lists (cookie notices, overlays, social and chat widgets, notification prompts) and its tracking-parameter list are on, and Complete filtering is the mode on every site. Every start puts exactly these back.
 - No popup, options page or keyboard shortcuts: in Exo Browser it is always on, at its strongest.
 - TTV LOL PRO is merged in (`ttv/`) with its ad reports off and no first-run page; one service worker runs both.
+- A count of what it blocked on each page, for Exo Browser's Bar (`exo-count.js`, with the `declarativeNetRequestFeedback` permission): the requests its rules blocked or sent to a harmless stand-in, not its exceptions, header changes or tracking parameters taken off a link (`exo-count-skip.json` lists those rules). The number goes only to Exo Browser's window, on this PC.
 - Exo's name and icons (`brand/`).
 
 `extensions/exo-shield/NOTICE.txt` says the same in the extension itself.
@@ -30,7 +31,7 @@ With Node 22 or newer:
 node tools/build-shield.mjs [path-to-pro-onlydomains.txt]
 ```
 
-Without a path it downloads HaGeZi's current Multi PRO list, so a new build has newer lists than the one committed here. `extensions/exo-shield` in this repository is exactly the build that ships in Exo Browser 1.0.0.
+Without a path it downloads HaGeZi's current Multi PRO list, so a new build has newer lists than the one committed here. `extensions/exo-shield` in this repository is exactly the build that ships in Exo Browser 1.3.0.
 
 ## Licenses
 
