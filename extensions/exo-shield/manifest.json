@@ -345,7 +345,7 @@
   "storage": {
     "managed_schema": "managed_storage.json"
   },
-  "version": "2026.1026.1812.7242",
+  "version": "2026.1026.1812.7267",
   "web_accessible_resources": [
     {
       "resources": [
@@ -463,5 +463,5 @@
       "css": []
     }
   ],
-  "version_name": "2026.1026.1812 (Exo 2026-10-29T18:47)"
+  "version_name": "2026.1026.1812 (Exo 2026-10-30T19:47)"
 }

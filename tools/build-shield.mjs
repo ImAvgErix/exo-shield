@@ -7,7 +7,10 @@
 // count for Exo Browser's Bar, for Exo Launcher's music players (which never load Twitch) to vendor.
 // node tools/build-shield.mjs [path-to-pro-onlydomains.txt]
 // node tools/build-shield.mjs --core   (only makes out/exo-shield-core, from extensions/exo-shield as it is)
+// node tools/build-shield.mjs --hash   (only prints out/exo-shield-core's folder hash, the one Exo Launcher pins)
 import { readFileSync, writeFileSync, rmSync, cpSync, copyFileSync, readdirSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { fileURLToPath } from "node:url";
 
 const root = new URL("../", import.meta.url);
 const vendor = new URL("vendor/ublock-origin-lite/", root);
@@ -21,6 +24,10 @@ const onMessageTtv = "    if ( typeof request?.what !== 'string' || request.what
 
 if (process.argv.includes("--core")) {
   buildCore();
+  process.exit(0);
+}
+if (process.argv.includes("--hash")) {
+  console.log(folderHash(coreOut));
   process.exit(0);
 }
 const text = process.argv[2] ? readFileSync(process.argv[2], "utf8") : await (await fetch(SOURCE)).text();
@@ -244,6 +251,23 @@ Exo Browser's Exo Shield of the same version without TTV LOL PRO, its permission
 
 ${read("SOURCE.txt")}`);
   console.log(`Exo Shield ${manifest.version} core: ${kept.length} HaGeZi rules, permissions ${manifest.permissions.join(", ")}`);
+  // Send this with every core build: Exo Launcher pins it in WebExtensions.cs and refuses a folder that doesn't match.
+  console.log(`Exo Shield ${manifest.version} core folder hash: ${folderHash(coreOut)}`);
+}
+
+// Exo Launcher's pinned folder hash (WebExtensionManifest.ComputeManifestHash): SHA-256 over "relpath\nfilehash\n" for
+// every file, paths with "/" in ordinal order, file hashes in lowercase hex, leaving out SOURCE.txt and LICENSE.txt
+// (Exo's notes and the licence) and _metadata/ (what a browser writes there once it has loaded the extension).
+function folderHash(dir) {
+  const base = fileURLToPath(dir);
+  const files = readdirSync(base, { recursive: true, withFileTypes: true })
+    .filter((e) => e.isFile())
+    .map((e) => (e.parentPath ?? e.path).slice(base.length).split(/[\\/]/).filter(Boolean).concat(e.name).join("/"))
+    .filter((f) => f !== "SOURCE.txt" && f !== "LICENSE.txt" && !f.startsWith("_metadata/"))
+    .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  let text = "";
+  for (const f of files) text += `${f}\n${createHash("sha256").update(readFileSync(new URL(f, dir))).digest("hex")}\n`;
+  return createHash("sha256").update(text, "utf8").digest("hex");
 }
 
 function NOTICE_CORE(ubol, sites) {
